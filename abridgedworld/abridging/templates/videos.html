@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% extends "nav.html" %}
+    {% block content %}
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+</br></br></br>
+<div>
+
+{% for video in videos %}
+<video width="500" height="500" controls >
+<source src="{{video.video.url}}" type="video/mp4">
+<b>{{video.title}}</b>
+</video>
+{% endfor %}
+</div>
+</body>
+{% endblock %}
+</html>

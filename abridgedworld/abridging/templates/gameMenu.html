@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        {% extends "nav.html" %}
+    {% block content %}
+
+    <meta charset="UTF-8">
+    <title>Menu</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <style>
+    .vertical-menu {
+    width: 200px;
+    }
+
+    .vertical-menu a {
+    background-color: #eee;
+    color: black;
+    display: block;
+    padding: 12px;
+    text-decoration: none;
+    }
+
+    .vertical-menu a:hover {
+    background-color: #ccc;
+    }
+
+    .vertical-menu a.active {
+    background-color: #04AA6D;
+    color: white;
+    }
+    </style>
+    <script>
+    var intervalId = window.setInterval(function(){
+     refreshlist()
+     }, 10000);
+    function refreshlist()
+    {
+
+    $.ajax({
+                    data: {}, // get the form data
+                    url: "{% url 'get_games' %}",
+                    // on success
+                    success: function (response) {
+                           $('.gameName').remove();
+                           console.log(response);
+                           response.games.forEach((game, index) => {
+                           console.log(`${index} : ${game.name}`);
+                           $('#gamelist').append(`<a class="gameName" href="../Game_page/${game.name}">${game.name}</a>`)
+                           });
+
+                    },
+                    // on error
+                    error: function (response) {
+                        // alert the error if any error occured
+                        console.log(response.responseJSON.errors)
+                    }
+                });
+    }
+    </script>
+</head>
+<body onload="refreshlist()">
+</br></br>
+<h1>pick a game:</h1>
+<div id="gamelist" class="vertical-menu">
+  <a href="#" class="active">Game Menu</a>
+</div>
+</br>
+<h1>make new game:</h1>
+<form action="{% url 'make_new_game'%}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="text" name="Game_name" placeholder="Enter game name"><br>
+    <select id="snip_char_selection" name="video_title">
+    {% for video in videos %}
+        <option class="video_selection" value="{{video.title}}"> {{video.title}} players = {{video.players}} </option>
+    {% endfor %}
+    </select>
+    <button type="submit"> Add Game</button>
+</form>
+</body>
+{% endblock %}
+</html>

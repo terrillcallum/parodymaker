@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    {% extends "nav.html" %}
+    {% block content %}
+    <meta charset="UTF-8">
+    <title>upload</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    {% csrf_token %}
+    <script>
+    function selectVideo(title,video)
+    {
+    console.log("selected " + title + " url is" + video)
+    document.getElementById("selected").innerHTML = title;
+    document.getElementById("CharVidTitle").value = title
+    document.getElementById("SnipVidTitle").value = title
+    $('.snip_video').remove();
+    $('#snippet-reference').append(`<video class="snip_video" width="400" controls>
+          <source src="../media/${video}" type="video/mp4">
+          Your browser does not support HTML video.
+        </video>`)
+    $('.character').remove();
+
+        $.ajax({
+                    data: {"video_title": title}, // get the form data
+                    url: "{% url 'get_snippets' %}",
+                    // on success
+                    success: function (response) {
+                           console.log(response);
+                           response.snippets.forEach((snippet, index) => {
+                           console.log(`${index} : ${snippet.snippet}`);
+                           $('#snippet-list').append(`<video class="snip_video" width="400" controls>
+                            <source src="../media/videos/${snippet.snippet}" type="video/mp4">
+                            `)});
+
+                    },
+                    // on error
+                    error: function (response) {
+                        // alert the error if any error occured
+                        console.log(response.responseJSON.errors)
+                    }
+                });
+    }
+    </script>
+</head>
+<body>
+</br></br></br>
+<h3>Upload New Video</h3>
+<hr>
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="text" name="title" placeholder="Enter Video Title here"><br>
+    <input type="file" name="video" accept="video/*">
+    <label for="player-number">number of players for video: </label>
+    <input id="player-number"type="number" name="players">
+    <button type="submit"> Upload New Video </button>
+</form>
+</br>
+</br>
+<h3>select video to modify</h3>
+<hr>
+{% for video in videos %}
+<button onclick="selectVideo('{{video.title}}','{{video.video}}')">{{video.title}}</button>
+{% endfor %}
+</br>
+<h2>Currently Selected: <h2 id="selected">none</h2></h2>
+<hr>
+<h3>Characters</h3>
+<hr>
+<div id="ListOfCharacters" name="ListOfCharacters"></div>
+
+</br>
+<h3>Add Character</h3>
+<hr>
+
+<form action="{% url 'upload_character'%}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="text" name="name" placeholder="Enter character name"><br>
+    <input type="hidden" name="title" id="CharVidTitle" value="">
+    <button type="submit"> Add Character to selected video </button>
+</form>
+</br>
+<h3>Make snippet</h3>
+<hr>
+<div id="snippet-reference"></div>
+<form action="{% url 'make_snippet'%}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="video_title" id="SnipVidTitle" value="">
+    <input type="number" name="start_time" placeholder="Enter snippet start time">
+    <input type="number" name="end_time" placeholder="Enter snippet end time">
+    <select id="snip_char_selection" name="character"></select>
+    <button type="submit"> Upload New snippet</button>
+</form>
+<div id="snippet-list"></div>
+
+</body>
+{% endblock %}
+</html>

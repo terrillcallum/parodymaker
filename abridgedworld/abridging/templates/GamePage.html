@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% extends "nav.html" %}
+    {% block content %}
+  <meta charset="UTF-8">
+  <title>$Title$</title>
+    <style>
+table, th, td {
+  border: 1px solid black;
+}
+
+table {
+  width: 100%;
+}
+</style>
+</head>
+<body>
+</br>
+<div>
+
+
+<video width="500" height="500" controls >
+<source src="{{video.video.url}}" type="video/mp4">
+<b>{{video.title}}</b>
+</video>
+
+<table>
+    <tr>
+        <td>Time start-end</td>
+        <td>video</td>
+        <td>record</td>
+    </tr>
+    
+    {% for snippet in snippets %}
+    <tr>
+        <td>{{snippet.start_time}}-{{snippet.end_time}}</td>
+        <td>
+            <video width="100%" controls id="video-{{snippet.id}}" >
+            <source src="/media/videos/{{snippet.snippet}}" type="video/mp4">
+            </video>
+        </td>
+        <td>
+           
+            <audio id="audio{{snippet.id}}" controls="controls"></audio>
+            <a href="/RecordSnippet/{{gameName}}/{{snippet.id}}">record</a>
+            <button value="PlaySoundAndVideo" onClick="GetSnippetSound({{snippet.id}}),PlaySoundAndVideo('video-{{snippet.id}}'),PlaySoundAndVideo('audio{{snippet.id}}')">Play</button>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script>
+
+function PlaySoundAndVideo(soundObj) {
+var soundAndVideo=document.getElementById(soundObj);
+if (soundAndVideo.tagName == "VIDEO") {
+    soundAndVideo.muted = true;
+};
+soundAndVideo.play();
+
+}
+
+</script>
+<script>
+    function GetSnippetSound(snippetid) {
+        $.ajax({
+                data: {"snippet-id": snippetid}, // get the form data
+                url: "{% url 'get_snippet_sound' %}",
+                // on success
+                success: function (response) {
+                       console.log(response);
+                       $('#audio'+snippetid).html(`<source src="${response.soundurl}" type="audio/wav"/>`);
+                       console.log(`snippet sound found ${response.soundurl} ` + '#audio'+snippetid + " ll " + $('#audio'+snippetid))
+                       },
+                    
+                // on error
+                error: function (response) {
+                    // alert the error if any error occured
+                    console.log(response.responseJSON.errors)
+                }
+            });
+
+        }
+
+</script>
+<script>
+    function BuildVideo() {
+        $.ajax({
+                data: {"Game_name": "{{gameName}}", "video_title": "{{video.title}}" }, // get the form data
+
+
+                url: "{% url 'build_video' %}",
+                // on success
+                success: function (response) {
+                       console.log(response);
+                       $('#finishedvid').html(`<video width="100%" controls id="finishedvideotag" >
+                        <source src="${response.finishedVideo}" type="video/mp4">
+                        </video>`);
+
+                       },
+
+                // on error
+                error: function (response) {
+                    // alert the error if any error occured
+                    console.log(response.responseJSON.errors)
+                }
+            });
+
+        }
+
+</script>
+<button onclick="BuildVideo()">Build video</button>
+<div id="finishedvid"></div>
+</body>
+{% endblock %}
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% extends "nav.html" %}
+    {% block content %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    {% csrf_token %}
+    <script>
+    function sendImage() {
+     var url = document.getElementById('audioUpload').getAttribute('src')
+     console.log("sending to " + url)
+     let blob = fetch(url).then(r => r.blob());
+      console.log(blob);
+      var fd = new FormData();
+      fd.append('image', blob);
+      var tet = $.ajax({
+          url: "",
+          type: 'POST',
+          headers: {'X-CSRFToken': $.cookie('csrftoken')},
+          data: fd,
+          async: false,
+          contentType: false,
+          processData: false,
+          success: function (response) {
+              console.log(response.driverBeacon);
+              document.getElementById('username').setAttribute('value', response.username);
+          },
+          error: function (error) {
+              console.log(error);
+          }
+    }).responseText;
+}
+
+// Required for Django CSRF
+function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+ 
+// Actual Upload function using xhr
+function upload(blob){
+        var csrftoken = getCookie('csrftoken');
+        var url = document.getElementById('audioUpload').getAttribute('src')
+         console.log("sending to " + url)
+        //let blob = fetch(url).then(r => r.blob());
+        var data = new FormData();
+        data.append('data', blob, 'audio_blob.ogg');
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', "/upload_Voiceover/{{game_name}}/{{snippet.id}}", true);
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        xhr.setRequestHeader("MyCustomHeader", "Put anything you need in here, like an ID");
+ 
+        xhr.upload.onloadend = function() {
+            alert('Upload complete');
+        };
+        // If you want you can show the upload progress using a progress bar
+        //var progressBar = document.querySelector('progress');
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                console.log((e.loaded / e.total) * 100);
+            }
+        };
+ 
+        xhr.send(blob);
+      }
+function sendData(blob) 
+    {
+    let csrftoken = getCookie('csrftoken');
+    var xhr=new XMLHttpRequest();
+      
+      xhr.onload=function(e) {
+          if(this.readyState === 4) {
+              console.log("Server returned: ",e.target.responseText);
+          }
+      };
+      var fd=new FormData();
+      fd.append("audio_data",blob, "filename.wav");
+      xhr.open("POST","/upload_Voiceover/{{game_name}}/{{snippet.id}}",true);
+      xhr.setRequestHeader("X-CSRFToken", csrftoken);
+      xhr.send(fd)
+   }
+    </script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+{% load static %}
+<body data-new-gr-c-s-check-loaded="14.1024.0" data-gr-ext-installed="">
+    <p class="start-time" value="{{snippet.start_time}}" style="visibility:hidden">{{snippet.start_time}}</p>
+    <p class="stop-time" value="{{snippet.end_time}}" style="visibility:hidden">{{snippet.end_time}}</p>
+    <div class="wrapper">
+
+      <header>
+        <h1>Record voice for Snippet</h1>
+      </header>
+        <video width="100%" id="recordvid"controls >
+        <source src="/media/videos/{{snippet.snippet}}" type="video/mp4">
+        </video>
+      <section class="main-controls">
+        <canvas class="visualizer" height="60px" width="739"></canvas>
+        <div id="buttons">
+            <script>
+                  function startTimer() {
+                  console.log("RRRRRRRRRRR")
+                }
+             </script>
+          <button class="record" style="">Record</button>
+          <button style="display: none;" class="stop" disabled="">Stop</button>
+        </div>
+      </section>
+
+      <section class="sound-clips">
+
+
+      </section>
+    {% csrf_token %}
+    <button onclick="upload()">send here</button>
+    <form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden"  name="game_name" value="{{game_name}}"><br>
+    <input class="audioUpload" id="audioUpload"  type="file" name="file" src="" accept="audio/*">
+    <input type="hidden" name="snippet_id" value="{{snippet.id}}">
+    <button type="submit"> Set as voice </button>
+    </form>
+    </div>
+
+    <script src="{% static 'app.js' %}"></script>
+    <link rel=”stylesheet” href=”{% static 'app.css' %}”>
+
+
+
+</body>
+{% endblock %}
+</html>
